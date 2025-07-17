@@ -17,11 +17,16 @@ A comprehensive web-based dashboard for monitoring and analyzing fuel prices acr
 - **50 fuel brands** tracked (BP, Shell, Caltex, 7-Eleven, etc.)
 
 ### 🌐 **Interactive Web Dashboard**
-- Real-time fuel price statistics and trends
+- **React Web Application** - Modern, responsive fuel price finder
+- **Python/Flask Dashboard** - Real-time fuel price statistics and trends
 - Interactive filtering by fuel type and location
 - Search functionality for specific stations
+- Suburb autocomplete with 100+ Queensland locations
+- Station ranking and price comparison tools
+- CSV export functionality for data analysis
 - Find cheapest stations with one click
-- Professional, responsive design optimized for all devices
+- Professional Queensland government branding
+- Optimized for desktop and mobile devices
 
 ### 🔧 **API & Data Export**
 - RESTful API with comprehensive endpoints
@@ -57,8 +62,10 @@ python3 test_dashboard.py
 python3 qld_fuel_web_app.py
 ```
 
-### Access Dashboard
-Open your browser to: **http://localhost:5008**
+### Access Dashboards
+
+**React Web Application:** Open `web_app.html` in your browser  
+**Python Dashboard:** Open your browser to: **http://localhost:5008**
 
 ## 🏗️ Architecture
 
@@ -97,6 +104,7 @@ Open your browser to: **http://localhost:5008**
 qld-fuel-dashboard/
 ├── 📄 qld_fuel_api_complete.py      # Main API client library
 ├── 📄 qld_fuel_web_app.py           # Flask web application
+├── 📄 web_app.html                  # React web application (standalone)
 ├── 📄 test_dashboard.py             # Installation test script
 ├── 📄 test_live_api.py              # Live API testing script
 ├── 📄 setup_dashboard.sh            # Setup script for macOS
@@ -105,7 +113,7 @@ qld-fuel-dashboard/
 ├── 📄 requirements.txt              # Python dependencies
 ├── 📄 config.json                   # Configuration settings
 ├── 📁 templates/
-│   └── 📄 index.html               # Dashboard interface
+│   └── 📄 index.html               # Flask dashboard interface
 ├── 📁 exports/                     # Data export directory
 └── 📁 venv/                        # Python virtual environment
 ```
@@ -138,6 +146,55 @@ curl "http://localhost:5008/api/export?format=csv" > fuel_prices.csv
 # Get live API data
 curl http://localhost:5008/api/live
 ```
+
+## 🌐 React Web Application
+
+### Queensland Fuel Finder (web_app.html)
+
+A standalone React-based web application for finding the cheapest fuel prices across Queensland. Built with modern web technologies and designed for optimal user experience.
+
+#### Features
+- **🏙️ Suburb Autocomplete** - Search from 100+ Queensland suburbs
+- **⛽ Fuel Type Selection** - All major fuel types (ULP, Diesel, Premium, E10, LPG)
+- **🏆 Smart Ranking** - Shows 6 cheapest + 1 most expensive for reference
+- **📊 Price Analysis** - Min/max prices, potential savings, station count
+- **📥 CSV Export** - Download results for fleet management
+- **📱 Responsive Design** - Works perfectly on desktop and mobile
+- **🎨 Queensland Branding** - Official blue and gold color scheme
+
+#### Quick Start
+```bash
+# Simply open the file in any modern browser
+open /Users/mark/Documents/qld_fuel_dashboard/web_app.html
+
+# Or double-click the file in Finder
+```
+
+#### Technology Stack
+- **React 18** - Modern UI framework
+- **Tailwind CSS** - Utility-first styling
+- **Chart.js** - Price trend visualization
+- **Axios** - API integration
+- **Babel** - JavaScript compilation
+
+#### API Integration
+The React app integrates with the Queensland Fuel Price API:
+```javascript
+// Configured with your exact parameters
+const API_CONFIG = {
+    baseURL: 'https://fppdirectapi-prod.fuelpricesqld.com.au',
+    token: 'b03319f8-7727-493b-9015-b20a7acae110',
+    countryId: 21,  // Critical: Must be 21 for Australia
+    geoRegionLevel: 3
+};
+```
+
+#### Usage Example
+1. Type "Brisbane" or "Morningside" in the suburb field
+2. Select fuel type (defaults to Unleaded Petrol)
+3. Click "Find Cheapest Fuel"
+4. View ranked results with price comparison
+5. Export data as CSV for analysis
 
 ## 🔧 Configuration
 
