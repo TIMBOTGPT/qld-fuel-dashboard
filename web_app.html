@@ -9,6 +9,8 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -22,6 +24,21 @@
             }
         }
     </script>
+    <style>
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 4px 8px rgba(0,0,0,0.5), 0 0 0 2px white, 0 0 20px rgba(255, 215, 0, 0.3);
+            }
+            50% { 
+                transform: scale(1.05); 
+                box-shadow: 0 6px 12px rgba(0,0,0,0.6), 0 0 0 2px white, 0 0 30px rgba(255, 215, 0, 0.6);
+            }
+        }
+        .custom-fuel-marker div {
+            animation-fill-mode: both;
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
     <div id="root"></div>
@@ -94,7 +111,7 @@
             return (price / 1000).toFixed(3);
         };
 
-        // Mock fuel station data
+        // Mock fuel station data with realistic Brisbane coordinates
         const getMockStations = () => ({
             sites: [
                 {
@@ -102,6 +119,8 @@
                     name: 'Brisbane City 7-Eleven',
                     brand: '7-Eleven',
                     address: '123 Queen Street, Brisbane QLD 4000',
+                    latitude: -27.4698,
+                    longitude: 153.0251,
                     prices: [
                         { fuelType: 'ULP', price: 1650, lastUpdated: new Date().toISOString() },
                         { fuelType: 'DSL', price: 1720, lastUpdated: new Date().toISOString() },
@@ -113,6 +132,8 @@
                     name: 'Coles Express Brisbane',
                     brand: 'Coles Express',
                     address: '456 Adelaide Street, Brisbane QLD 4000',
+                    latitude: -27.4705,
+                    longitude: 153.0260,
                     prices: [
                         { fuelType: 'ULP', price: 1580, lastUpdated: new Date().toISOString() },
                         { fuelType: 'DSL', price: 1690, lastUpdated: new Date().toISOString() },
@@ -124,6 +145,8 @@
                     name: 'Shell Brisbane Central',
                     brand: 'Shell',
                     address: '789 George Street, Brisbane QLD 4000',
+                    latitude: -27.4720,
+                    longitude: 153.0235,
                     prices: [
                         { fuelType: 'ULP', price: 1620, lastUpdated: new Date().toISOString() },
                         { fuelType: 'DSL', price: 1710, lastUpdated: new Date().toISOString() },
@@ -132,9 +155,11 @@
                 },
                 {
                     siteId: 4,
-                    name: 'BP Connect Brisbane',
+                    name: 'BP Connect Morningside',
                     brand: 'BP',
-                    address: '321 Ann Street, Brisbane QLD 4000',
+                    address: '321 Wynnum Road, Morningside QLD 4170',
+                    latitude: -27.4751,
+                    longitude: 153.0721,
                     prices: [
                         { fuelType: 'ULP', price: 1590, lastUpdated: new Date().toISOString() },
                         { fuelType: 'DSL', price: 1700, lastUpdated: new Date().toISOString() },
@@ -143,9 +168,11 @@
                 },
                 {
                     siteId: 5,
-                    name: 'Ampol Brisbane Valley',
+                    name: 'Ampol Morningside',
                     brand: 'Ampol',
-                    address: '654 Valley Road, Brisbane QLD 4000',
+                    address: '654 Wynnum Road, Morningside QLD 4170',
+                    latitude: -27.4765,
+                    longitude: 153.0735,
                     prices: [
                         { fuelType: 'ULP', price: 1570, lastUpdated: new Date().toISOString() },
                         { fuelType: 'DSL', price: 1680, lastUpdated: new Date().toISOString() },
@@ -154,9 +181,11 @@
                 },
                 {
                     siteId: 6,
-                    name: 'United Petroleum Brisbane',
+                    name: 'United Petroleum Bulimba',
                     brand: 'United',
-                    address: '987 Roma Street, Brisbane QLD 4000',
+                    address: '987 Oxford Street, Bulimba QLD 4171',
+                    latitude: -27.4521,
+                    longitude: 153.0621,
                     prices: [
                         { fuelType: 'ULP', price: 1680, lastUpdated: new Date().toISOString() },
                         { fuelType: 'DSL', price: 1750, lastUpdated: new Date().toISOString() },
@@ -165,13 +194,145 @@
                 },
                 {
                     siteId: 7,
-                    name: 'Metro Petroleum Brisbane',
+                    name: 'Metro Petroleum Hawthorne',
                     brand: 'Metro',
-                    address: '234 Creek Street, Brisbane QLD 4000',
+                    address: '234 Creek Road, Hawthorne QLD 4171',
+                    latitude: -27.4612,
+                    longitude: 153.0592,
                     prices: [
                         { fuelType: 'ULP', price: 1600, lastUpdated: new Date().toISOString() },
                         { fuelType: 'DSL', price: 1730, lastUpdated: new Date().toISOString() },
                         { fuelType: 'PULP95', price: 1790, lastUpdated: new Date().toISOString() }
+                    ]
+                },
+                {
+                    siteId: 8,
+                    name: 'Caltex Woolloongabba',
+                    brand: 'Caltex',
+                    address: '456 Logan Road, Woolloongabba QLD 4102',
+                    latitude: -27.4851,
+                    longitude: 153.0321,
+                    prices: [
+                        { fuelType: 'ULP', price: 1595, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'DSL', price: 1695, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'PULP95', price: 1765, lastUpdated: new Date().toISOString() }
+                    ]
+                },
+                {
+                    siteId: 9,
+                    name: 'Puma Energy Cannon Hill',
+                    brand: 'Puma',
+                    address: '123 Creek Road, Cannon Hill QLD 4170',
+                    latitude: -27.4681,
+                    longitude: 153.0901,
+                    prices: [
+                        { fuelType: 'ULP', price: 1585, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'DSL', price: 1685, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'PULP95', price: 1755, lastUpdated: new Date().toISOString() }
+                    ]
+                },
+                {
+                    siteId: 10,
+                    name: 'Liberty Coorparoo',
+                    brand: 'Liberty',
+                    address: '789 Cavendish Road, Coorparoo QLD 4151',
+                    latitude: -27.4921,
+                    longitude: 153.0521,
+                    prices: [
+                        { fuelType: 'ULP', price: 1605, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'DSL', price: 1705, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'PULP95', price: 1775, lastUpdated: new Date().toISOString() }
+                    ]
+                },
+                {
+                    siteId: 11,
+                    name: '7-Eleven New Farm',
+                    brand: '7-Eleven',
+                    address: '321 Brunswick Street, New Farm QLD 4005',
+                    latitude: -27.4621,
+                    longitude: 153.0421,
+                    prices: [
+                        { fuelType: 'ULP', price: 1615, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'DSL', price: 1715, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'PULP95', price: 1785, lastUpdated: new Date().toISOString() }
+                    ]
+                },
+                {
+                    siteId: 12,
+                    name: 'Budget Petrol East Brisbane',
+                    brand: 'Budget',
+                    address: '654 Stanley Street, East Brisbane QLD 4169',
+                    latitude: -27.4721,
+                    longitude: 153.0421,
+                    prices: [
+                        { fuelType: 'ULP', price: 1565, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'DSL', price: 1675, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'PULP95', price: 1735, lastUpdated: new Date().toISOString() }
+                    ]
+                },
+                {
+                    siteId: 13,
+                    name: 'Mobil Stones Corner',
+                    brand: 'Mobil',
+                    address: '987 Logan Road, Stones Corner QLD 4120',
+                    latitude: -27.4921,
+                    longitude: 153.0421,
+                    prices: [
+                        { fuelType: 'ULP', price: 1625, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'DSL', price: 1725, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'PULP95', price: 1795, lastUpdated: new Date().toISOString() }
+                    ]
+                },
+                {
+                    siteId: 14,
+                    name: 'Speedway Tingalpa',
+                    brand: 'Speedway',
+                    address: '234 Wynnum Road, Tingalpa QLD 4173',
+                    latitude: -27.4821,
+                    longitude: 153.1021,
+                    prices: [
+                        { fuelType: 'ULP', price: 1575, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'DSL', price: 1685, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'PULP95', price: 1745, lastUpdated: new Date().toISOString() }
+                    ]
+                },
+                {
+                    siteId: 15,
+                    name: 'EG Petrol Balmoral',
+                    brand: 'EG',
+                    address: '456 Hawthorne Road, Balmoral QLD 4171',
+                    latitude: -27.4621,
+                    longitude: 153.0721,
+                    prices: [
+                        { fuelType: 'ULP', price: 1635, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'DSL', price: 1735, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'PULP95', price: 1805, lastUpdated: new Date().toISOString() }
+                    ]
+                },
+                {
+                    siteId: 16,
+                    name: 'Vibe Energy Greenslopes',
+                    brand: 'Vibe',
+                    address: '789 Logan Road, Greenslopes QLD 4120',
+                    latitude: -27.5021,
+                    longitude: 153.0521,
+                    prices: [
+                        { fuelType: 'ULP', price: 1645, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'DSL', price: 1745, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'PULP95', price: 1815, lastUpdated: new Date().toISOString() }
+                    ]
+                },
+                {
+                    siteId: 17,
+                    name: 'X Convenience Norman Park',
+                    brand: 'X Convenience',
+                    address: '321 Wynnum Road, Norman Park QLD 4170',
+                    latitude: -27.4821,
+                    longitude: 153.0821,
+                    prices: [
+                        { fuelType: 'ULP', price: 1655, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'DSL', price: 1755, lastUpdated: new Date().toISOString() },
+                        { fuelType: 'PULP95', price: 1825, lastUpdated: new Date().toISOString() }
                     ]
                 }
             ]
@@ -224,6 +385,128 @@
             );
         };
 
+        // Map Component for displaying fuel stations
+        const FuelStationMap = ({ stations, fuelType, selectedSuburb }) => {
+            const mapRef = useRef(null);
+            const mapInstance = useRef(null);
+
+            useEffect(() => {
+                if (!mapRef.current) return;
+
+                // Initialize map
+                if (!mapInstance.current) {
+                    mapInstance.current = L.map(mapRef.current).setView([-27.4698, 153.0251], 12);
+                    
+                    // Add tile layer (free OpenStreetMap)
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(mapInstance.current);
+                }
+
+                // Clear existing markers
+                mapInstance.current.eachLayer((layer) => {
+                    if (layer instanceof L.Marker) {
+                        mapInstance.current.removeLayer(layer);
+                    }
+                });
+
+                if (stations.length === 0) return;
+
+                // Get price range for color coding
+                const prices = stations.map(station => {
+                    const price = station.prices.find(p => p.fuelType === fuelType);
+                    return price ? price.price : 0;
+                }).filter(price => price > 0);
+
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+
+                // Add markers for each station
+                stations.forEach((station, index) => {
+                    const price = station.prices.find(p => p.fuelType === fuelType);
+                    if (!price || !station.latitude || !station.longitude) return;
+
+                    // Calculate price ratio for color coding
+                    const priceRatio = (price.price - minPrice) / (maxPrice - minPrice);
+                    
+                    // Color code by price using guide colors - Green to Red progression
+                    let color;
+                    if (priceRatio < 0.25) {
+                        color = '#228B22'; // Cheapest - Green (positive/attractive price)
+                    } else if (priceRatio < 0.5) {
+                        color = '#FFD700'; // Moderate - Yellow (neutral/cautionary)
+                    } else if (priceRatio < 0.75) {
+                        color = '#FF8C00'; // Expensive - Orange (strong but less alarming)
+                    } else {
+                        color = '#DC143C'; // Most expensive - Red (immediate negative signal)
+                    }
+                    
+                    // Check if this is the absolute cheapest station
+                    const isAbsoluteCheapest = price.price === minPrice;
+                    
+                    // Determine text color based on background for readability
+                    const textColor = color === '#FFD700' ? '#000000' : '#FFFFFF';
+                    const textShadow = color === '#FFD700' ? '0 1px 2px rgba(255,255,255,0.8)' : '0 1px 2px rgba(0,0,0,0.8)';
+                    
+                    // Create marker style
+                    let markerStyle, iconSize, iconAnchor;
+                    
+                    if (isAbsoluteCheapest) {
+                        markerStyle = `background: linear-gradient(45deg, #228B22, #32CD32); color: white; border-radius: 8px; width: 55px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 15px; font-family: Arial, sans-serif; border: 3px solid #FFD700; box-shadow: 0 4px 8px rgba(0,0,0,0.5), 0 0 0 2px white; text-shadow: 0 1px 2px rgba(0,0,0,0.8);`;
+                        iconSize = [55, 32];
+                        iconAnchor = [27.5, 16];
+                    } else {
+                        markerStyle = `background-color: ${color}; color: ${textColor}; border-radius: 8px; width: 50px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; font-family: Arial, sans-serif; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.4); text-shadow: ${textShadow};`;
+                        iconSize = [50, 28];
+                        iconAnchor = [25, 14];
+                    }
+                    
+                    const markerContent = `$${convertPrice(price.price).slice(0,4)}`;
+
+                    // Create custom marker
+                    const marker = L.marker([station.latitude, station.longitude], {
+                        icon: L.divIcon({
+                            className: 'custom-fuel-marker',
+                            html: `<div style="${markerStyle}">${markerContent}</div>`,
+                            iconSize: iconSize,
+                            iconAnchor: iconAnchor
+                        })
+                    });
+
+                    // Add popup with station details
+                    marker.bindPopup(`
+                        <div style="min-width: 200px;">
+                            <h3 style="font-weight: bold; margin: 0 0 8px 0;">${station.name}</h3>
+                            <p style="margin: 0 0 4px 0; color: #666;">${station.brand}</p>
+                            <p style="margin: 0 0 8px 0; font-size: 14px;">${station.address}</p>
+                            <div style="background: ${color}; color: white; padding: 4px 8px; border-radius: 4px; text-align: center; font-weight: bold;">
+                                ${fuelType}: $${convertPrice(price.price)}
+                            </div>
+                            <p style="margin: 8px 0 0 0; font-size: 12px; color: #888;">
+                                Updated: ${new Date(price.lastUpdated).toLocaleTimeString()}
+                            </p>
+                        </div>
+                    `);
+
+                    marker.addTo(mapInstance.current);
+                });
+
+                // Fit map to show all markers
+                if (stations.length > 0) {
+                    const group = new L.featureGroup(mapInstance.current._layers);
+                    if (Object.keys(group._layers).length > 0) {
+                        mapInstance.current.fitBounds(group.getBounds().pad(0.1));
+                    }
+                }
+
+            }, [stations, fuelType]);
+
+            return React.createElement('div', {
+                ref: mapRef,
+                style: { height: '400px', width: '100%', borderRadius: '8px' }
+            });
+        };
+
         // Station Card Component
         const StationCard = ({ station, fuelType, onShowChart, isExpensive = false }) => {
             const price = station.prices.find(p => p.fuelType === fuelType);
@@ -249,7 +532,7 @@
                 React.createElement('p', { className: 'text-gray-600 mb-2 text-sm' }, station.address),
                 React.createElement('div', { className: 'flex justify-between items-center' },
                     React.createElement('span', { className: 'text-sm text-gray-500' }, 
-                        `📍 ${station.address.split(',')[0]}` // Show just street name
+                        `📍 ${station.address.split(',')[1]?.trim() || 'Brisbane'}` // Show suburb
                     ),
                     React.createElement('button', {
                         onClick: () => onShowChart(station.siteId, station.name, fuelType),
@@ -338,7 +621,7 @@
                 }
             };
 
-            const cheapestStations = stations.slice(0, 6);
+            const cheapestStations = stations.slice(0, 15);
             const mostExpensiveStation = stations.length > 0 ? [stations[stations.length - 1]] : [];
 
             const prices = stations.map(station => {
@@ -438,9 +721,64 @@
                             )
                         ),
 
+                        // Map View
+                        React.createElement('div', { className: 'bg-white rounded-lg shadow-md p-6' },
+                            React.createElement('h3', { className: 'text-xl font-semibold mb-4' }, '🗺️ Station Locations'),
+                            React.createElement('div', { className: 'mb-4' },
+                                React.createElement('div', { className: 'flex items-center space-x-4 text-sm' },
+                                    React.createElement('div', { className: 'flex items-center' },
+                                        React.createElement('div', { 
+                                            className: 'w-6 h-4 rounded mr-2',
+                                            style: { 
+                                                background: 'linear-gradient(45deg, #228B22, #32CD32)',
+                                                border: '2px solid #FFD700'
+                                            }
+                                        }),
+                                        React.createElement('span', null, '🏆 Absolute Cheapest')
+                                    ),
+                                    React.createElement('div', { className: 'flex items-center' },
+                                        React.createElement('div', { 
+                                            className: 'w-4 h-4 rounded-full mr-2',
+                                            style: { backgroundColor: '#228B22' }
+                                        }),
+                                        React.createElement('span', null, 'Cheapest')
+                                    ),
+                                    React.createElement('div', { className: 'flex items-center' },
+                                        React.createElement('div', { 
+                                            className: 'w-4 h-4 rounded-full mr-2',
+                                            style: { backgroundColor: '#FFD700' }
+                                        }),
+                                        React.createElement('span', null, 'Moderate')
+                                    ),
+                                    React.createElement('div', { className: 'flex items-center' },
+                                        React.createElement('div', { 
+                                            className: 'w-4 h-4 rounded-full mr-2',
+                                            style: { backgroundColor: '#FF8C00' }
+                                        }),
+                                        React.createElement('span', null, 'Expensive')
+                                    ),
+                                    React.createElement('div', { className: 'flex items-center' },
+                                        React.createElement('div', { 
+                                            className: 'w-4 h-4 rounded-full mr-2',
+                                            style: { backgroundColor: '#DC143C' }
+                                        }),
+                                        React.createElement('span', null, 'Most Expensive')
+                                    )
+                                )
+                            ),
+                            React.createElement(FuelStationMap, {
+                                stations: stations,
+                                fuelType: fuelType,
+                                selectedSuburb: selectedSuburb
+                            }),
+                            React.createElement('p', { className: 'text-sm text-gray-600 mt-4' },
+                                '💡 Click markers for station details. Map shows exact locations so you can plan your route!'
+                            )
+                        ),
+
                         // Cheapest Stations
                         React.createElement('div', null,
-                            React.createElement('h3', { className: 'text-xl font-semibold mb-4 text-green-700' }, '🏆 Cheapest Fuel Stations'),
+                            React.createElement('h3', { className: 'text-xl font-semibold mb-4 text-green-700' }, '🏆 15 Cheapest Fuel Stations'),
                             React.createElement('div', { className: 'grid md:grid-cols-2 lg:grid-cols-3 gap-4' },
                                 cheapestStations.map((station) =>
                                     React.createElement(StationCard, {
